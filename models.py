@@ -5,7 +5,7 @@ db = SQLAlchemy()
 
 class Users(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, Primary_key = True)
+    id = db.Column(db.Integer, primary_key = True)
     first_name = db.Column(db.Text, nullable = False)
     last_name = db.Column (db.Text, nullable = False)
     email = db.Column (db.String, nullable = False, unique = True)
@@ -15,7 +15,7 @@ class Users(db.Model):
 
 class Account(db.Model):
     __tablename__ =  "accounts"
-    id = db.Column(db.Integer, Primary_Key = True)
+    id = db.Column(db.Integer, primary_key = True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete="CASCADE"), nullable=False)
     balance = db.Column(db.Float, default = 0.0, nullable = False)
     created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())  
