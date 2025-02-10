@@ -5,12 +5,15 @@ db = SQLAlchemy()
 
 class Users(db.Model):
     __tablename__ = "users"
-    id = db.Column(db.Integer, primary_key = True)
-    first_name = db.Column(db.Text, nullable = False)
-    last_name = db.Column (db.Text, nullable = False)
-    email = db.Column (db.String, nullable = False, unique = True)
-    phone = db.Column (db.String, nullable = False, unique = True)
+    id = db.Column(db.Integer, primary_key=True)
+    first_name = db.Column(db.Text, nullable=False)
+    last_name = db.Column(db.Text, nullable=False)
+    email = db.Column(db.String, nullable=False, unique=True)
+    phone = db.Column(db.String, nullable=False, unique=True)
     created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    sent_transactions = db.relationship('Transaction', foreign_keys='Transaction.sender_id', back_populates='sender')
+    received_transactions = db.relationship('Transaction', foreign_keys='Transaction.receiver_id', back_populates='receiver')
+
     accounts = db.relationship('Account', back_populates='user', cascade="all, delete")
 
 class Account(db.Model):
