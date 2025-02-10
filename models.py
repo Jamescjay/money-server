@@ -30,7 +30,7 @@ class Transaction(db.Model):
     amount = db.Column(db.Float, nullable=False)
     status = db.Column(db.String(20), nullable=False, default="pending")
     transaction_type = db.Column(db.String(20), nullable=False)
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
 
     sender = db.relationship('User', foreign_keys=[sender_id], back_populates='sent_transactions')
     receiver = db.relationship('User', foreign_keys=[receiver_id], back_populates='received_transactions')
@@ -55,7 +55,7 @@ class Notification(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.user_id', ondelete="CASCADE"), nullable=False)
     status = db.Column(db.String(20), nullable=False, default="unread") 
-    created_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
 
     user = db.relationship('User', back_populates='notifications')
 
@@ -79,7 +79,7 @@ class Security(db.Model):
     risk_score = db.Column(db.Float, nullable=False)
     fraud_flag = db.Column(db.Boolean, default=False)
     reason = db.Column(db.String(255), nullable=True)
-    logged_at = db.Column(db.DateTime, default=db.func.current_timestamp())
+    logged_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
 
     user = db.relationship('User', back_populates='security_logs')
     transaction = db.relationship('Transaction')    
