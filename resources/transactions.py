@@ -1,5 +1,5 @@
 from flask_restful import Resource, fields, marshal_with, reqparse
-from flask_jwt_extended import jwt_required, get_jwt_identity
+from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required, get_jwt_identity
 from models import db, Transaction, Account
 from datetime import datetime
 
@@ -28,13 +28,13 @@ class UserTransactions(Resource):
     
 class SendMoney(Resource):
     parser = reqparse.RequestParser()
-    parser.add_argument("receiver_id", type=int, required=True, help="Receiver ID is required.")
+    parser.add_argument("receiver_phone_number", type=int, required=True, help="Receiver's number is required.")
     parser.add_argument("amount", type=float, required=True, help="Amount is required.")
 
     @jwt_required()
     def post(self):
         """Handle sending money from the logged-in user to another user."""
-        data = self.parser.parse_args()
+        data = SendMoney.parser.parse_args()
         sender_id = get_jwt_identity()
         receiver_id = data["receiver_id"]
         amount = data["amount"]

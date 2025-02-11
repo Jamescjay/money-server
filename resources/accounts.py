@@ -14,7 +14,7 @@ class UserAccount(Resource):
     @jwt_required()
     @marshal_with(account_fields)
     def get(self):
-        user_id = get_jwt_identity() 
+        user_id = get_jwt_identity()
         account = Account.query.filter_by(user_id=user_id).first()
 
         if not account:
