@@ -5,11 +5,9 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from models import Users, db, Account
 from datetime import datetime
 
-# Define Blueprint
 user_blueprint = Blueprint('user', __name__)
 api = Api(user_blueprint)
 
-# Request Parsers
 user_parser = reqparse.RequestParser()
 user_parser.add_argument('first_name', required=True, help='First name is required')
 user_parser.add_argument('last_name', required=True, help='Last name is required')
@@ -21,7 +19,6 @@ login_parser = reqparse.RequestParser()
 login_parser.add_argument('email', required=True, help='Email is required')
 login_parser.add_argument('password', required=True, help='Password is required')
 
-# Custom serialization function for datetime
 def format_datetime(value):
     return value.strftime('%Y-%m-%d %H:%M:%S') if value else None
 
@@ -37,7 +34,7 @@ class UserResource(Resource):
             return {"message": "Phone number already exists", "status": "fail"}, 400
 
         try:
-            # Create User
+            
             user = Users(
                 first_name=data['first_name'],
                 last_name=data['last_name'],
@@ -47,14 +44,14 @@ class UserResource(Resource):
                 created_at=datetime.utcnow()
             )
             db.session.add(user)
-            db.session.commit()  # Commit after adding user to ensure user.id is available
+            db.session.commit()  
 
-            # Now create Account with user.id
+            
             account = Account(user_id=user.id, balance=0.0, created_at=datetime.utcnow())
             db.session.add(account)
-            db.session.commit()  # Commit again after adding account
+            db.session.commit()  
 
-            # Generate tokens
+            #
             access_token = create_access_token(identity=str(user.id))
             refresh_token = create_refresh_token(identity=str(user.id))
 
@@ -129,7 +126,7 @@ class LoginResource(Resource):
         user = Users.query.filter_by(email=data['email']).first()
 
         if user and check_password_hash(user.password, data['password']):
-            # Generate tokens
+    
             access_token = create_access_token(identity=str(user.id))
             refresh_token = create_refresh_token(identity=str(user.id))
 
