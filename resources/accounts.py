@@ -1,30 +1,27 @@
-
-from flask_restful import Resource, fields, marshal_with
+from flask_restful import Resource
 from flask_jwt_extended import jwt_required, get_jwt_identity
-from models import db, Account
+from sqlalchemy.orm import joinedload
+from models import db, Account, Users
 
 class UserAccount(Resource):
-    account_fields = {
-        "balance": fields.Float(default=0.0),
-        "user": fields.Nested({
-            "first_name": fields.String,
-            "last_name": fields.String
-        })
-    }
-
     @jwt_required()
-    @marshal_with(account_fields)
     def get(self):
         user_id = get_jwt_identity()
-        account = Account.query.filter_by(user_id=user_id).first()
+        account = Account.query.options(joinedload(Account.user)).filter_by(user_id=user_id).first()
 
         if not account:
-            
-         return {"message": "Account not found", "status": "fail"}, 404
+            return {"message": "Account not found", "status": "fail"}, 404
         
+        # Debug print
+        print("Account:", account)
+        print("Account User:", account.user if account else "No account found")
+
         account_data = {
-    "balance": account.balance,
-    "first_name": account.user.first_name,  
-    "last_name": account.user.last_name
-}
+            "balance": account.balance,
+            "user": {
+                "first_name": account.user.first_name if account.user else None,
+                "last_name": account.user.last_name if account.user else None
+            },
+            "id": account.id 
+        }
         return {"message": "Account details retrieved", "status": "success", "account": account_data}, 200

@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_restful import Resource, Api, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import Users, db
+from models import Users, db, Account
 from datetime import datetime
 
 # Define Blueprint
@@ -28,7 +28,7 @@ def format_datetime(value):
 class UserResource(Resource):
     def post(self):
         data = user_parser.parse_args()
-        data['password'] = generate_password_hash(data['password'])
+        hashed_password = generate_password_hash(data['password'])
 
         if Users.query.filter_by(email=data['email']).first():
             return {"message": "Email already taken", "status": "fail"}, 400
@@ -37,16 +37,22 @@ class UserResource(Resource):
             return {"message": "Phone number already exists", "status": "fail"}, 400
 
         try:
+            # Create User
             user = Users(
                 first_name=data['first_name'],
                 last_name=data['last_name'],
                 email=data['email'],
                 phone=data['phone'],
-                password=data['password'],
-                created_at=datetime.utcnow()  # Store as a datetime object
+                password=hashed_password,
+                created_at=datetime.utcnow()
             )
             db.session.add(user)
-            db.session.commit()
+            db.session.commit()  # Commit after adding user to ensure user.id is available
+
+            # Now create Account with user.id
+            account = Account(user_id=user.id, balance=0.0, created_at=datetime.utcnow())
+            db.session.add(account)
+            db.session.commit()  # Commit again after adding account
 
             # Generate tokens
             access_token = create_access_token(identity=str(user.id))
@@ -64,6 +70,11 @@ class UserResource(Resource):
                     "email": user.email,
                     "phone": user.phone,
                     "created_at": format_datetime(user.created_at)
+                },
+                "account": {
+                    "id": account.id,
+                    "balance": account.balance,
+                    "created_at": format_datetime(account.created_at)
                 }
             }, 201
         except Exception as e:
@@ -75,15 +86,22 @@ class UserResource(Resource):
         if id:
             user = Users.query.get(id)
             if user:
+                account = Account.query.filter_by(user_id=id).first()
                 return {
                     "id": user.id,
                     "first_name": user.first_name,
                     "last_name": user.last_name,
                     "email": user.email,
                     "phone": user.phone,
-                    "created_at": format_datetime(user.created_at)
+                    "created_at": format_datetime(user.created_at),
+                    "account": {
+                        "id": account.id if account else None,
+                        "balance": account.balance if account else 0.0,
+                        "created_at": format_datetime(account.created_at) if account else None
+                    }
                 }, 200
             return {"message": "User not found", "status": "fail"}, 404
+        
         return self.get_all_users()
 
     @jwt_required()
