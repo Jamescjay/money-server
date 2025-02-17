@@ -8,6 +8,7 @@ from flask_jwt_extended import JWTManager
 from resources.user import UserResource, LoginResource
 from resources.user import user_blueprint
 from resources.transactions import TransactionResource
+from resources.accounts import AccountResource
 
 app = Flask(__name__)
 
@@ -30,6 +31,7 @@ jwt = JWTManager(app)
 api.add_resource(UserResource, '/users', '/users/<int:id>')
 api.add_resource(LoginResource, '/login')
 api.add_resource(TransactionResource, '/transactions')
+api.add_resource(AccountResource, '/account')
 
 # Register Blueprint AFTER initializing extensions
 app.register_blueprint(user_blueprint)

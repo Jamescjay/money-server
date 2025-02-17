@@ -25,8 +25,9 @@ class Account(db.Model):
     __tablename__ = "accounts"
     id = db.Column(db.Integer, primary_key=True)
     user_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete="CASCADE"), nullable=False)
-    balance = db.Column(db.Float, default=0.0, nullable=False)
-    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())  
+    balance = db.Column(db.Float, default=10000.0, nullable=False)  # Default balance of 10,000
+    created_at = db.Column(db.TIMESTAMP, server_default=db.func.now())
+    
     user = db.relationship('Users', back_populates='accounts')
 
 class Transaction(db.Model):

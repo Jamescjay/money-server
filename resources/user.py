@@ -2,7 +2,7 @@ from flask import Blueprint
 from flask_restful import Resource, Api, reqparse
 from flask_jwt_extended import create_access_token, create_refresh_token, jwt_required
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import Users, db
+from models import Users, Account, db
 from datetime import datetime
 
 # Define Blueprint
@@ -30,6 +30,7 @@ class UserResource(Resource):
         data = user_parser.parse_args()
         data['password'] = generate_password_hash(data['password'])
 
+        # Check if user already exists based on email or phone number
         if Users.query.filter_by(email=data['email']).first():
             return {"message": "Email already taken", "status": "fail"}, 400
 
@@ -37,6 +38,7 @@ class UserResource(Resource):
             return {"message": "Phone number already exists", "status": "fail"}, 400
 
         try:
+            # Create new user
             user = Users(
                 first_name=data['first_name'],
                 last_name=data['last_name'],
@@ -46,6 +48,11 @@ class UserResource(Resource):
                 created_at=datetime.utcnow()  # Store as a datetime object
             )
             db.session.add(user)
+            db.session.flush()  # Temporarily commit to get user id
+
+            # Create new account with initial balance of 10,000
+            account = Account(user_id=user.id, balance=10000)
+            db.session.add(account)
             db.session.commit()
 
             # Generate tokens
@@ -130,5 +137,3 @@ class LoginResource(Resource):
                 }
             }, 200
         return {"message": "Invalid email/password", "status": "fail"}, 400
-
-
